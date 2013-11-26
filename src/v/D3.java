@@ -68,20 +68,50 @@ public class D3
 	window.setLayout(new BorderLayout());
 	window.add(panel = new JPanel()
 	    {
+		float[][] Pm = UNIT;
+		
 		{
 		    this.setBackground(Color.BLACK);
+		    Pm = createRotation("y", -10f);
 		}
+		
+		float[] pxs = new float[8];
+		float[] pys = new float[8];
+		float[] pzs = new float[8];
+		
+		float[] normal_pxs = new float[6];
+		float[] normal_pys = new float[6];
+		float[] normal_pzs = new float[6];
 		
 		@Override
 		public void paint(Graphics g)
 		{
 		    super.paint(g);
 		    
+		    
+		    /* Camera */
+		    for (int i = 0; i < 8; i++)
+		    {
+			float[] v = mul(Pm, xs[i], ys[i], zs[i]);
+			pxs[i] = v[0];
+			pys[i] = v[1];
+			pzs[i] = v[2];
+		    }
+		    for (int i = 0; i < 6; i++)
+		    {
+			float[] v = mul(Pm, normal_xs[i], normal_ys[i], normal_zs[i]);
+			normal_pxs[i] = v[0];
+			normal_pys[i] = v[1];
+			normal_pzs[i] = v[2];
+		    }
+		    /* End camera */
+		    
+		    
 		    /* */
 		    int[] z = new int[6];
 		    for (int i = 0; i < 6; i++)
 		    {
-			int v = (int)(normal_zs[i] * 1000f);
+			int v = (int)(normal_pzs[i] * 1000f);
 			z[i] = (v << 8) | i;
 		    }
 		    
@@ -92,12 +122,12 @@ public class D3
 			int side = z[i] & 7;
 			switch (side)
 			{
-			    case 0:  draw(188, 188, 188, 0, 1, 5, 4, g, normal_zs[0]);  break;
-			    case 1:  draw(188,   0,   0, 0, 1, 3, 2, g, normal_zs[1]);  break;
-			    case 2:  draw(  0, 188,   0, 0, 2, 6, 4, g, normal_zs[2]);  break;
-			    case 3:  draw(  0,   0, 188, 1, 3, 7, 5, g, normal_zs[3]);  break;
-			    case 4:  draw(188, 128,   0, 4, 5, 7, 6, g, normal_zs[4]);  break;
-			    case 5:  draw(188, 188,   0, 2, 3, 7, 6, g, normal_zs[5]);  break;
+			    case 0:  draw(188, 188, 188, 0, 1, 5, 4, g, normal_pzs[0]);  break;
+			    case 1:  draw(188,   0,   0, 0, 1, 3, 2, g, normal_pzs[1]);  break;
+			    case 2:  draw(  0, 188,   0, 0, 2, 6, 4, g, normal_pzs[2]);  break;
+			    case 3:  draw(  0,   0, 188, 1, 3, 7, 5, g, normal_pzs[3]);  break;
+			    case 4:  draw(188, 128,   0, 4, 5, 7, 6, g, normal_pzs[4]);  break;
+			    case 5:  draw(188, 188,   0, 2, 3, 7, 6, g, normal_pzs[5]);  break;
 			}
 		    }
 		    /* */
@@ -151,12 +181,12 @@ public class D3
 		private int Px(int i)
 		{
 		    /* Orthogonal projection */
-		    //float z = SCREEN_Z / (zs[i] + MODEL_Z);
-		    //return (int)(xs[i] * z * 300f + 400f);
+		    //float z = SCREEN_Z / (pzs[i] + MODEL_Z);
+		    //return (int)(pxs[i] * z * 300f + 400f);
 		    
 		    /* Perspective projection */
-		    float model_z = zs[i] + MODEL_Z;
-		    float model_x = xs[i];
+		    float model_z = pzs[i] + MODEL_Z;
+		    float model_x = pxs[i];
 		    float p = VIEWER_Z / (model_z - CAMERA_Z) * (model_x - CAMERA_X) - VIEWER_X;
 		    return (int)(p * 300f + 400f);
 		}
@@ -164,12 +194,12 @@ public class D3
 		private int Py(int i)
 		{
 		    /* Orthogonal projection */
-		    //float z = SCREEN_Z / (zs[i] + MODEL_Z);
-		    //return (int)(ys[i] * z * 300f + 300f);
+		    //float z = SCREEN_Z / (pzs[i] + MODEL_Z);
+		    //return (int)(pys[i] * z * 300f + 300f);
 		    
 		    /* Perspective projection */
-		    float model_z = zs[i] + MODEL_Z;
-		    float model_y = ys[i];
+		    float model_z = pzs[i] + MODEL_Z;
+		    float model_y = pys[i];
 		    float p = VIEWER_Z / (model_z - CAMERA_Z) * (model_y - CAMERA_Y) - VIEWER_Y;
 		    return (int)(p * 300f + 300f);
 		}
