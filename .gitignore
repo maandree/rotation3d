@@ -1,0 +1,11 @@
+_/
+bin/
+obj/
+\#*\#
+*~
+*.bak
+*.swo
+*.swp
+*.class
+*.jar
+
