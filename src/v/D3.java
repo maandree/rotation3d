@@ -51,6 +51,7 @@ public class D3
     static int rx = 0;
     static int ry = 0;
     static int rxy = 0;
+    static int rg = 0;
     
     public static void main(String... args) throws InterruptedException
     {
@@ -196,6 +197,8 @@ public class D3
 			case KeyEvent.VK_S:  ry  = 0;  break;
 			case KeyEvent.VK_E:  rxy = 0;  break;
 			case KeyEvent.VK_Q:  rxy = 0;  break;
+			case KeyEvent.VK_F:  rg  = 0;  break;
+			case KeyEvent.VK_C:  rg  = 0;  break;
 		    }
 		}
 		
@@ -209,6 +212,8 @@ public class D3
 			case KeyEvent.VK_S:  ry  = -1;  break;
 			case KeyEvent.VK_E:  rxy = +1;  break;
 			case KeyEvent.VK_Q:  rxy = -1;  break;
+			case KeyEvent.VK_F:  rg  = +1;  break;
+			case KeyEvent.VK_C:  rg  = -1;  break;
 			    
 			case KeyEvent.VK_R:
 			    rotation_speed = 0;
@@ -244,6 +249,11 @@ public class D3
 		rotation_speed = length(v);
 		rotation = normalise(v);
 	    }
+	    
+	    if (rg == 1)
+		rotation_speed *= 1.1f;
+	    else if (rg == -1)
+		rotation_speed /= 1.1f;
 	    
 	    if (rotation_speed != 0)
 		transform(createRotation(rotation, rotation_speed));
