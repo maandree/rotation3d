@@ -35,11 +35,11 @@ import static v.VMaths.*;
 public class D3
 {
     static final float DEGREES_PER_SECOND = 50f / 1000f;
-    static final float[][] UNIT = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    static final float DEGREES_PER_SECOND_PER_SECOND = DEGREES_PER_SECOND;
     
-    static float[] xs = new float[8];
-    static float[] ys = new float[8];
-    static float[] zs = new float[8];
+    static float[] xs = new float[8 + 6];
+    static float[] ys = new float[8 + 6];
+    static float[] zs = new float[8 + 6];
     
     static float[] normal_xs = {0f, 0f, 1f, -1f,  0f,  0f};
     static float[] normal_ys = {1f, 0f, 0f,  0f,  0f, -1f};
@@ -53,6 +53,14 @@ public class D3
     static int rxy = 0;
     static int rg = 0;
     
+    static int srx = 0;
+    static int sry = 0;
+    static int srxy = 0;
+    
+    static float[][] Pm = UNIT;
+    
+    static boolean sreset = false;
+    
     public static void main(String... args) throws InterruptedException
     {
 	for (int i = 0; i < 8; i++)
@@ -62,26 +70,27 @@ public class D3
 	    zs[i] = ((i & 4) != 0 ? 1f : 0f) - 0.5f;
 	}
 	
+	xs[8]  = +1;  xs[11] = -1;
+	ys[9]  = +1;  ys[12] = -1;
+	zs[10] = +1;  zs[13] = -1;
+	
 	final JFrame window = new JFrame();
 	final JPanel panel;
 	window.pack();
 	window.setLayout(new BorderLayout());
 	window.add(panel = new JPanel()
 	    {
-		float[][] Pm = UNIT;
-		
-		{
-		    this.setBackground(Color.BLACK);
-		    Pm = createRotation("y", -10f);
-		}
-		
-		float[] pxs = new float[8];
-		float[] pys = new float[8];
-		float[] pzs = new float[8];
+		float[] pxs = new float[8 + 7];
+		float[] pys = new float[8 + 7];
+		float[] pzs = new float[8 + 7];
 		
 		float[] normal_pxs = new float[6];
 		float[] normal_pys = new float[6];
 		float[] normal_pzs = new float[6];
+		
+		{
+		    this.setBackground(Color.BLACK);
+		}
 		
 		@Override
 		public void paint(Graphics g)
@@ -90,6 +99,12 @@ public class D3
 		    
 		    
 		    /* Camera */
+		    for (int i = 8; i < 8 + 6; i++)
+		    {
+			pxs[i] = xs[i];
+			pys[i] = ys[i];
+			pzs[i] = zs[i];
+		    }
 		    for (int i = 0; i < 8; i++)
 		    {
 			float[] v = mul(Pm, xs[i], ys[i], zs[i]);
@@ -145,6 +160,15 @@ public class D3
 		    draw(new Color(  0,   0, 188), 4, 6, g);
 		    draw(new Color(188, 188,   0), 5, 7, g);
 		    draw(new Color(  0, 188,   0), 6, 7, g);
+		    /* */
+		    
+		    /* */
+		    draw(new Color(255,   0,   0),  8, 14, g);
+		    draw(new Color(  0, 255,   0),  9, 14, g);
+		    draw(new Color(  0,   0, 255), 10, 14, g);
+		    draw(new Color(  0, 255, 255), 11, 14, g);
+		    draw(new Color(255,   0, 255), 12, 14, g);
+		    draw(new Color(255, 255,   0), 13, 14, g);
 		    /* */
 		}
 		
@@ -211,7 +235,9 @@ public class D3
 	window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	window.setVisible(true);
 	
-	final float SPEED = (float)(Math.sqrt(25.5f / 2f)) * DEGREES_PER_SECOND;
+	final float SPEED = (float)(Math.sqrt(25.5f / 2f)) * DEGREES_PER_SECOND_PER_SECOND;
+	
+	final float SSPEED = 25.5f * DEGREES_PER_SECOND;
 	
 	window.addKeyListener(new KeyListener()
 	    {
@@ -221,34 +247,54 @@ public class D3
 		{
 		    switch (e.getKeyCode())
 		    {
-			case KeyEvent.VK_D:  rx  = 0;  break;
-			case KeyEvent.VK_A:  rx  = 0;  break;
-			case KeyEvent.VK_W:  ry  = 0;  break;
-			case KeyEvent.VK_S:  ry  = 0;  break;
-			case KeyEvent.VK_E:  rxy = 0;  break;
-			case KeyEvent.VK_Q:  rxy = 0;  break;
-			case KeyEvent.VK_F:  rg  = 0;  break;
-			case KeyEvent.VK_C:  rg  = 0;  break;
+			case KeyEvent.VK_D:  srx  = rx  = 0;  break;
+			case KeyEvent.VK_A:  srx  = rx  = 0;  break;
+			case KeyEvent.VK_W:  sry  = ry  = 0;  break;
+			case KeyEvent.VK_S:  sry  = ry  = 0;  break;
+			case KeyEvent.VK_E:  srxy = rxy = 0;  break;
+			case KeyEvent.VK_Q:  srxy = rxy = 0;  break;
+			case KeyEvent.VK_F:  rg   = 0;        break;
+			case KeyEvent.VK_C:  rg   = 0;        break;
 		    }
 		}
 		
 		public void keyPressed(KeyEvent e)
 		{
-		    switch (e.getKeyCode())
-		    {
-			case KeyEvent.VK_D:  rx  = +1;  break;
-			case KeyEvent.VK_A:  rx  = -1;  break;
-			case KeyEvent.VK_W:  ry  = +1;  break;
-			case KeyEvent.VK_S:  ry  = -1;  break;
-			case KeyEvent.VK_E:  rxy = +1;  break;
-			case KeyEvent.VK_Q:  rxy = -1;  break;
-			case KeyEvent.VK_F:  rg  = +1;  break;
-			case KeyEvent.VK_C:  rg  = -1;  break;
-			    
-			case KeyEvent.VK_R:
-			    rotation_speed = 0;
-			    break;
-		    }
+		    boolean shift = (e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) != 0;
+		    boolean ctrl =  (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK)  != 0;
+		    
+		    int v = ctrl ? 2 : 1;
+		    
+		    if (shift == false)
+			switch (e.getKeyCode())
+			{
+			    case KeyEvent.VK_D:  rx  = +v;  break;
+			    case KeyEvent.VK_A:  rx  = -v;  break;
+			    case KeyEvent.VK_W:  ry  = +v;  break;
+			    case KeyEvent.VK_S:  ry  = -v;  break;
+			    case KeyEvent.VK_E:  rxy = +v;  break;
+			    case KeyEvent.VK_Q:  rxy = -v;  break;
+			    case KeyEvent.VK_F:  rg  = +1;  break;
+			    case KeyEvent.VK_C:  rg  = -1;  break;
+				
+			    case KeyEvent.VK_R:
+				rotation_speed = 0;
+				break;
+			}
+		    else
+			switch (e.getKeyCode())
+			{
+			    case KeyEvent.VK_D:  srx  = +v;  break;
+			    case KeyEvent.VK_A:  srx  = -v;  break;
+			    case KeyEvent.VK_W:  sry  = +v;  break;
+			    case KeyEvent.VK_S:  sry  = -v;  break;
+			    case KeyEvent.VK_E:  srxy = +v;  break;
+			    case KeyEvent.VK_Q:  srxy = -v;  break;
+				
+			    case KeyEvent.VK_R:
+				sreset = true;
+				break;
+			}
 		}
 	    });
 	
@@ -256,25 +302,36 @@ public class D3
 	{
 	    Thread.sleep(50);
 	    
-	    if (rx != 0)
+	    if (sreset)
 	    {
-		float[] v = mul(rx * SPEED, createRotation("x"));
+		Pm = UNIT;
+		for (int i = 8; i < 8 + 12; i++)
+		    xs[i] = ys[i] = zs[i] = 0;
+		xs[8]  = +1;  xs[11] = -1;
+		ys[9]  = +1;  ys[12] = -1;
+		zs[10] = +1;  zs[13] = -1;
+		sreset = false;
+	    }
+	    
+	    if (rx * rx == 1)
+	    {
+		float[] v = mul(rx * SPEED, createRotation("x", Pm));
 		v = add(mul(rotation_speed, rotation), v);
 		rotation_speed = length(v);
 		rotation = normalise(v);
 	    }
 	    
-	    if (ry != 0)
+	    if (ry * ry == 1)
 	    {
-		float[] v = mul(ry * SPEED, createRotation("y"));
+		float[] v = mul(ry * SPEED, createRotation("y", Pm));
 		v = add(mul(rotation_speed, rotation), v);
 		rotation_speed = length(v);
 		rotation = normalise(v);
 	    }
 	    
-	    if (rxy != 0)
+	    if (rxy * rxy == 1)
 	    {
-		float[] v = mul(rxy * SPEED, createRotation("xy"));
+		float[] v = mul(rxy * SPEED, createRotation("xy", Pm));
 		v = add(mul(rotation_speed, rotation), v);
 		rotation_speed = length(v);
 		rotation = normalise(v);
@@ -287,6 +344,24 @@ public class D3
 	    
 	    if (rotation_speed != 0)
 		transform(createRotation(rotation, rotation_speed));
+	    
+	    if (rx  * rx  == 4)  transform(createRotation("x",  45 * rx  / 2));
+            if (ry  * ry  == 4)  transform(createRotation("y",  45 * ry  / 2));
+            if (rxy * rxy == 4)  transform(createRotation("xy", 45 * rxy / 2));
+	    if (rx  * rx  == 4)  rx = 0;
+	    if (ry  * ry  == 4)  ry = 0;
+	    if (rxy * rxy == 4)  rxy = 0;
+	    
+	    if (srx  * srx  == 1)  stransform(createRotation("x",  srx  * SSPEED));
+	    if (sry  * sry  == 1)  stransform(createRotation("y",  sry  * SSPEED));
+	    if (srxy * srxy == 1)  stransform(createRotation("xy", srxy * SSPEED));
+	    
+	    if (srx  * srx  == 4)  stransform(createRotation("x",  45 * srx  / 2));
+            if (sry  * sry  == 4)  stransform(createRotation("y",  45 * sry  / 2));
+            if (srxy * srxy == 4)  stransform(createRotation("xy", 45 * srxy / 2));
+	    if (srx  * srx  == 4)  srx = 0;
+	    if (sry  * sry  == 4)  sry = 0;
+	    if (srxy * srxy == 4)  srxy = 0;
 	    
 	    panel.repaint();
 	}
@@ -314,6 +389,37 @@ public class D3
 	    normal_ys[i] = v[1];
 	    normal_zs[i] = v[2];
 	}
+    }
+    
+    public static void stransform(float[][] m)
+    {
+	for (int i = 8; i < 8 + 6; i++)
+	{
+	    float[] v = mul(m, xs[i], ys[i], zs[i]);
+	    xs[i] = v[0];
+	    ys[i] = v[1];
+	    zs[i] = v[2];
+	}
+	
+	if (Pm == UNIT)
+	{
+	    Pm = new float[3][3];
+	    for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+		    Pm[i][j] = UNIT[i][j];
+	}
+	
+	Pm[0][0] = xs[8];
+	Pm[1][0] = ys[8];
+	Pm[2][0] = zs[8];
+	
+	Pm[0][1] = xs[9];
+	Pm[1][1] = ys[9];
+	Pm[2][1] = zs[9];
+	
+	Pm[0][2] = xs[10];
+	Pm[1][2] = ys[10];
+	Pm[2][2] = zs[10];
     }
     
 }

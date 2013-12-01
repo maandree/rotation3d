@@ -29,24 +29,31 @@ package v;
  */
 public class VMaths
 {
-
+    public static final float[][] UNIT = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    
+    
     public static float[] createRotation(String side)
+    {
+	return createRotation(side, UNIT);
+    }
+    
+    public static float[] createRotation(String side, float[][] proj)
     {
 	switch (side.toLowerCase())
 	{
 	    case "x":
 	    case "xz":
 	    case "zx":
-		return new float[] {  0f, -1f,  0f };
+		return mul(-1, proj[1]);
 	    
 	    case "y":
 	    case "yz":
 	    case "zy":
-		return new float[] { -1f,  0f,  0f };
+		return mul(-1, proj[0]);
 	    
 	    case "xy":
 	    case "yx":
-		return new float[] {  0f,  0f, +1f };
+		return proj[2];
 	}
 	
 	return null;
@@ -219,7 +226,46 @@ public class VMaths
 	return rc;
     }
     
+    public static float[][] inv(float[][] m)
+    {
+	return mul(1f / det(m), trans(m));
+    }
     
+    public static float[][] trans(float[][] m)
+    {
+	int x, y;
+	float[][] rc = new float[y = m[0].length][x = m.length];
+
+	for (int r = 0; r < y; r++)
+            for (int c = 0; c < x; c++)
+		rc[r][c] = m[c][r];
+	
+	return rc;
+    }
+    
+    public static float det(float[][] m)
+    {
+	float rc = 0;
+	int mul = 1;
+	int n = m.length;
+	
+	if (n == 0)  return 1;
+	if (n == 1)  return m[0][0];
+	
+	for (int i = 0; i < n; i++)
+	{
+	    float[][] sub = new float[n - 1][n - 1];
+	    
+	    for (int y = 0; y < n - 1; y++)
+		for (int x = 0; x < n - 1; x++)
+		    sub[y][x] = m[y + 1][x < i ? x : x + 1];
+	    
+	    rc += mul * det(sub);
+	    mul *= -1;
+	}
+	
+	return rc;
+    }
     
 }
 
