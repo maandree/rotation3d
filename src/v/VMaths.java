@@ -226,6 +226,11 @@ public class VMaths
 	return rc;
     }
     
+    public static float[][] on_inv(float[][] m)
+    {
+	return trans(m);
+    }
+    
     public static float[][] inv(float[][] m)
     {
 	return mul(1f / det(m), trans(m));

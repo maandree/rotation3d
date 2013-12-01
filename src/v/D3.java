@@ -37,9 +37,9 @@ public class D3
     static final float DEGREES_PER_SECOND = 50f / 1000f;
     static final float DEGREES_PER_SECOND_PER_SECOND = DEGREES_PER_SECOND;
     
-    static float[] xs = new float[8 + 6];
-    static float[] ys = new float[8 + 6];
-    static float[] zs = new float[8 + 6];
+    static float[] xs = new float[8 + 6 + 3];
+    static float[] ys = new float[8 + 6 + 3];
+    static float[] zs = new float[8 + 6 + 3];
     
     static float[] normal_xs = {0f, 0f, 1f, -1f,  0f,  0f};
     static float[] normal_ys = {1f, 0f, 0f,  0f,  0f, -1f};
@@ -60,15 +60,12 @@ public class D3
     static float[][] Pm = UNIT;
     
     static boolean sreset = false;
+    static boolean camera_to_rotation = false;
+    static boolean rotation_to_camera = false;
     
     public static void main(String... args) throws InterruptedException
     {
-	for (int i = 0; i < 8; i++)
-	{
-	    xs[i] = ((i & 1) != 0 ? 1f : 0f) - 0.5f;
-	    ys[i] = ((i & 2) != 0 ? 1f : 0f) - 0.5f;
-	    zs[i] = ((i & 4) != 0 ? 1f : 0f) - 0.5f;
-	}
+	resetRotation();
 	
 	xs[8]  = +1;  xs[11] = -1;
 	ys[9]  = +1;  ys[12] = -1;
@@ -277,6 +274,10 @@ public class D3
 			    case KeyEvent.VK_F:  rg  = +1;  break;
 			    case KeyEvent.VK_C:  rg  = -1;  break;
 				
+			    case KeyEvent.VK_X:
+				rotation_to_camera = true;
+				break;
+				
 			    case KeyEvent.VK_R:
 				rotation_speed = 0;
 				break;
@@ -291,6 +292,10 @@ public class D3
 			    case KeyEvent.VK_E:  srxy = +v;  break;
 			    case KeyEvent.VK_Q:  srxy = -v;  break;
 				
+			    case KeyEvent.VK_X:
+				camera_to_rotation = true;
+				break;
+				
 			    case KeyEvent.VK_R:
 				sreset = true;
 				break;
@@ -302,15 +307,28 @@ public class D3
 	{
 	    Thread.sleep(50);
 	    
+	    if (camera_to_rotation)
+	    {
+		transform(on_inv(Pm));
+		camera_to_rotation = false;
+		sreset = true;
+	    }
+	    
 	    if (sreset)
 	    {
 		Pm = UNIT;
-		for (int i = 8; i < 8 + 12; i++)
+		for (int i = 8; i < 8 + 6; i++)
 		    xs[i] = ys[i] = zs[i] = 0;
 		xs[8]  = +1;  xs[11] = -1;
 		ys[9]  = +1;  ys[12] = -1;
 		zs[10] = +1;  zs[13] = -1;
 		sreset = false;
+	    }
+	    
+	    if (rotation_to_camera)
+	    {
+		stransform(resetRotation());
+		rotation_to_camera = false;
 	    }
 	    
 	    if (rx * rx == 1)
@@ -368,6 +386,40 @@ public class D3
     }
     
     
+    public static float[][] resetRotation()
+    {
+	float[][] r = new float[3][3];
+	
+	r[0][0] = xs[14];
+	r[1][0] = ys[14];
+	r[2][0] = zs[14];
+	
+	r[0][1] = xs[15];
+	r[1][1] = ys[15];
+	r[2][1] = zs[15];
+	
+	r[0][2] = xs[16];
+	r[1][2] = ys[16];
+	r[2][2] = zs[16];
+	
+	for (int i = 0; i < 8; i++)
+	{
+	    xs[i] = ((i & 1) != 0 ? 1f : 0f) - 0.5f;
+	    ys[i] = ((i & 2) != 0 ? 1f : 0f) - 0.5f;
+	    zs[i] = ((i & 4) != 0 ? 1f : 0f) - 0.5f;
+	}
+	xs[14] = xs[15] = xs[16] = 0;
+	ys[14] = ys[15] = ys[16] = 0;
+	zs[14] = zs[15] = zs[16] = 0;
+	xs[14] = ys[15] = zs[16] = 1;
+	
+	normal_xs = new float[] {0f, 0f, 1f, -1f,  0f,  0f};
+	normal_ys = new float[] {1f, 0f, 0f,  0f,  0f, -1f};
+	normal_zs = new float[] {0f, 1f, 0f,  0f, -1f,  0f};
+	
+	return r;
+    }
+    
     public static void transform(float[][] m)
     {
 	/* This is not a transformation of the object, but
@@ -375,6 +427,14 @@ public class D3
 	 * program combines the object and the projection.) */
 	
 	for (int i = 0; i < 8; i++)
+	{
+	    float[] v = mul(m, xs[i], ys[i], zs[i]);
+	    xs[i] = v[0];
+	    ys[i] = v[1];
+	    zs[i] = v[2];
+	}
+	
+	for (int i = 8 + 6; i < 8 + 6 + 3; i++)
 	{
 	    float[] v = mul(m, xs[i], ys[i], zs[i]);
 	    xs[i] = v[0];
