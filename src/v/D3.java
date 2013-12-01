@@ -37,9 +37,9 @@ public class D3
     static final float DEGREES_PER_SECOND = 50f / 1000f;
     static final float DEGREES_PER_SECOND_PER_SECOND = DEGREES_PER_SECOND;
     
-    static float[] xs = new float[8 + 6 + 3];
-    static float[] ys = new float[8 + 6 + 3];
-    static float[] zs = new float[8 + 6 + 3];
+    static float[] xs = new float[8 + 6 + 3 + 3];
+    static float[] ys = new float[8 + 6 + 3 + 3];
+    static float[] zs = new float[8 + 6 + 3 + 3];
     
     static float[] normal_xs = {0f, 0f, 1f, -1f,  0f,  0f};
     static float[] normal_ys = {1f, 0f, 0f,  0f,  0f, -1f};
@@ -57,9 +57,15 @@ public class D3
     static int sry = 0;
     static int srxy = 0;
     
+    static int zrx = 0;
+    static int zry = 0;
+    static int zrxy = 0;
+    
     static float[][] Pm = UNIT;
+    static float[][] Qm = UNIT;
     
     static boolean sreset = false;
+    static boolean zreset = false;
     static boolean camera_to_rotation = false;
     static boolean rotation_to_camera = false;
     
@@ -70,6 +76,14 @@ public class D3
 	xs[8]  = +1;  xs[11] = -1;
 	ys[9]  = +1;  ys[12] = -1;
 	zs[10] = +1;  zs[13] = -1;
+	
+	xs[14] = +1;
+	ys[15] = +1;
+	zs[16] = +1;
+	
+	xs[17] = +1;
+	ys[18] = +1;
+	zs[19] = +1;
 	
 	final JFrame window = new JFrame();
 	final JPanel panel;
@@ -104,14 +118,14 @@ public class D3
 		    }
 		    for (int i = 0; i < 8; i++)
 		    {
-			float[] v = mul(Pm, xs[i], ys[i], zs[i]);
+			float[] v = mul(Qm, mul(Pm, xs[i], ys[i], zs[i]));
 			pxs[i] = v[0];
 			pys[i] = v[1];
 			pzs[i] = v[2];
 		    }
 		    for (int i = 0; i < 6; i++)
 		    {
-			float[] v = mul(Pm, normal_xs[i], normal_ys[i], normal_zs[i]);
+			float[] v = mul(Qm, mul(Pm, normal_xs[i], normal_ys[i], normal_zs[i]));
 			normal_pxs[i] = v[0];
 			normal_pys[i] = v[1];
 			normal_pzs[i] = v[2];
@@ -244,25 +258,26 @@ public class D3
 		{
 		    switch (e.getKeyCode())
 		    {
-			case KeyEvent.VK_D:  srx  = rx  = 0;  break;
-			case KeyEvent.VK_A:  srx  = rx  = 0;  break;
-			case KeyEvent.VK_W:  sry  = ry  = 0;  break;
-			case KeyEvent.VK_S:  sry  = ry  = 0;  break;
-			case KeyEvent.VK_E:  srxy = rxy = 0;  break;
-			case KeyEvent.VK_Q:  srxy = rxy = 0;  break;
-			case KeyEvent.VK_F:  rg   = 0;        break;
-			case KeyEvent.VK_C:  rg   = 0;        break;
+			case KeyEvent.VK_D:  zrx  = srx  = rx  = 0;  break;
+			case KeyEvent.VK_A:  zrx  = srx  = rx  = 0;  break;
+			case KeyEvent.VK_W:  zry  = sry  = ry  = 0;  break;
+			case KeyEvent.VK_S:  zry  = sry  = ry  = 0;  break;
+			case KeyEvent.VK_E:  zrxy = srxy = rxy = 0;  break;
+			case KeyEvent.VK_Q:  zrxy = srxy = rxy = 0;  break;
+			case KeyEvent.VK_F:  rg   = 0;               break;
+			case KeyEvent.VK_C:  rg   = 0;               break;
 		    }
 		}
 		
 		public void keyPressed(KeyEvent e)
 		{
 		    boolean shift = (e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) != 0;
-		    boolean ctrl =  (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK)  != 0;
+		    boolean alt   = (e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK)   != 0;
+		    boolean ctrl  = (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK)  != 0;
 		    
 		    int v = ctrl ? 2 : 1;
 		    
-		    if (shift == false)
+		    if ((shift == false) && (alt == false))
 			switch (e.getKeyCode())
 			{
 			    case KeyEvent.VK_D:  rx  = +v;  break;
@@ -282,7 +297,7 @@ public class D3
 				rotation_speed = 0;
 				break;
 			}
-		    else
+		    else if (shift && (alt == false))
 			switch (e.getKeyCode())
 			{
 			    case KeyEvent.VK_D:  srx  = +v;  break;
@@ -298,6 +313,20 @@ public class D3
 				
 			    case KeyEvent.VK_R:
 				sreset = true;
+				break;
+			}
+		    else if ((shift == false) && alt)
+			switch (e.getKeyCode())
+			{
+			    case KeyEvent.VK_D:  zrx  = +v;  break;
+			    case KeyEvent.VK_A:  zrx  = -v;  break;
+			    case KeyEvent.VK_W:  zry  = +v;  break;
+			    case KeyEvent.VK_S:  zry  = -v;  break;
+			    case KeyEvent.VK_E:  zrxy = +v;  break;
+			    case KeyEvent.VK_Q:  zrxy = -v;  break;
+				
+			    case KeyEvent.VK_R:
+				zreset = true;
 				break;
 			}
 		}
@@ -323,6 +352,17 @@ public class D3
 		ys[9]  = +1;  ys[12] = -1;
 		zs[10] = +1;  zs[13] = -1;
 		sreset = false;
+	    }
+	    
+	    if (zreset)
+	    {
+		Qm = UNIT;
+		for (int i = 8 + 6 + 3; i < 8 + 6 + 3 + 3; i++)
+		    xs[i] = ys[i] = zs[i] = 0;
+		xs[17] = +1;
+		ys[18] = +1;
+		zs[19] = +1;
+		zreset = false;
 	    }
 	    
 	    if (rotation_to_camera)
@@ -380,6 +420,17 @@ public class D3
 	    if (srx  * srx  == 4)  srx = 0;
 	    if (sry  * sry  == 4)  sry = 0;
 	    if (srxy * srxy == 4)  srxy = 0;
+	    
+	    if (zrx  * zrx  == 1)  ztransform(createRotation("x",  zrx  * SSPEED));
+	    if (zry  * zry  == 1)  ztransform(createRotation("y",  zry  * SSPEED));
+	    if (zrxy * zrxy == 1)  ztransform(createRotation("xy", zrxy * SSPEED));
+	    
+	    if (zrx  * zrx  == 4)  ztransform(createRotation("x",  45 * zrx  / 2));
+            if (zry  * zry  == 4)  ztransform(createRotation("y",  45 * zry  / 2));
+            if (zrxy * zrxy == 4)  ztransform(createRotation("xy", 45 * zrxy / 2));
+	    if (zrx  * zrx  == 4)  zrx = 0;
+	    if (zry  * zry  == 4)  zry = 0;
+	    if (zrxy * zrxy == 4)  zrxy = 0;
 	    
 	    panel.repaint();
 	}
@@ -480,6 +531,37 @@ public class D3
 	Pm[0][2] = xs[10];
 	Pm[1][2] = ys[10];
 	Pm[2][2] = zs[10];
+    }
+    
+    public static void ztransform(float[][] m)
+    {
+	for (int i = 8 + 6 + 3; i < 8 + 6 + 3 + 3; i++)
+	{
+	    float[] v = mul(m, xs[i], ys[i], zs[i]);
+	    xs[i] = v[0];
+	    ys[i] = v[1];
+	    zs[i] = v[2];
+	}
+	
+	if (Qm == UNIT)
+	{
+	    Qm = new float[3][3];
+	    for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+		    Qm[i][j] = UNIT[i][j];
+	}
+	
+	Qm[0][0] = xs[17];
+	Qm[1][0] = ys[17];
+	Qm[2][0] = zs[17];
+	
+	Qm[0][1] = xs[18];
+	Qm[1][1] = ys[18];
+	Qm[2][1] = zs[18];
+	
+	Qm[0][2] = xs[19];
+	Qm[1][2] = ys[19];
+	Qm[2][2] = zs[19];
     }
     
 }
