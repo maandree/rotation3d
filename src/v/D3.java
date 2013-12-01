@@ -290,7 +290,7 @@ public class D3
 			    case KeyEvent.VK_C:  rg  = -1;  break;
 				
 			    case KeyEvent.VK_X:
-				rotation_to_camera = true;
+				camera_to_rotation = true;
 				break;
 				
 			    case KeyEvent.VK_R:
@@ -308,7 +308,7 @@ public class D3
 			    case KeyEvent.VK_Q:  srxy = -v;  break;
 				
 			    case KeyEvent.VK_X:
-				camera_to_rotation = true;
+				rotation_to_camera = true;
 				break;
 				
 			    case KeyEvent.VK_R:
@@ -338,7 +338,7 @@ public class D3
 	    
 	    if (camera_to_rotation)
 	    {
-		transform(on_inv(Pm));
+		transform(Pm);
 		camera_to_rotation = false;
 		sreset = true;
 	    }
