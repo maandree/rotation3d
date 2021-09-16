@@ -1,12 +1,17 @@
+.POSIX:
+
 JAVAC = javac
 
-.PHONY: all
-all:
+SRC =\
+	srv/v/D3.java\
+	srv/v/VMaths.java
+
+
+all: $(SRC)
 	@mkdir -p bin
 	$(JAVAC) -cp src -s src -d bin src/v/D3.java
 
-
-.PHONY: clean
 clean:
-	-rm -r bin
+	-rm -r -- bin
 
+.PHONY: all clean

@@ -64,6 +64,7 @@ public class D3
     static float[][] Pm = UNIT;
     static float[][] Qm = UNIT;
     
+    static boolean rreset = false;
     static boolean sreset = false;
     static boolean zreset = false;
     static boolean camera_to_rotation = false;
@@ -294,7 +295,10 @@ public class D3
 				break;
 				
 			    case KeyEvent.VK_R:
-				rotation_speed = 0;
+				if (ctrl)
+				    rreset = true;
+				else
+				    rotation_speed = 0;
 				break;
 			}
 		    else if (shift && (alt == false))
@@ -369,6 +373,12 @@ public class D3
 	    {
 		stransform(resetRotation());
 		rotation_to_camera = false;
+	    }
+	    
+	    if (rreset)
+	    {
+		resetRotation();
+		rreset = false;
 	    }
 	    
 	    if (rx * rx == 1)
